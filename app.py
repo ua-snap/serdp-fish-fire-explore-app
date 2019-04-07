@@ -217,28 +217,32 @@ def update_graph( station_name, wrf_variable, year_range):
     station_df.name = 'ACIS'
     
     # concat
-    df = pd.concat([wrf_df,modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    # df = pd.concat([wrf_df,modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    df = pd.concat([modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    wrf_dff_max = wrf_df_max.loc[str(begin):str(end)]
+    wrf_dff_min = wrf_df_min.loc[str(begin):str(end)]
 
     # make a plotly json object directly using cufflinks
     title = 'Compare MODIS LST with WRF {} Max\n {}'.format(wrf_variable.upper(), pts[pts.name2 == station_name].name.values[0])
     # fig_cuff = df.copy(deep=True).iplot(title=title, xTitle='8-day MODIS LST Composite', yTitle='Degrees C', asFigure=True)#, rangeslider=True)
     # return fig_cuff.copy().to_plotly_json()
-    return { 'data': [
+    return { 'data':[ 
+                go.Scatter(
+                    x=wrf_dff_min['ERA-Interim'].index.tolist()+wrf_dff_max['ERA-Interim'].index.tolist()[::-1],
+                    y=wrf_dff_min['ERA-Interim'].tolist()+wrf_dff_max['ERA-Interim'].tolist()[::-1],
+                    name='ERA-Interim',
+                    fill='tozeroy',
+                    # line=dict(color=ms_colors[i[0]][i[1]], width=2),
+                    mode='lines'),
+                ] + [ \
                 go.Scatter(
                     x=df[i].index,
                     y=df[i],
                     name=i,
                     # line=dict(color=ms_colors[i[0]][i[1]], width=2),
                     mode='lines'
-                ) for i in ['ACIS', 'MOD11A2', 'MYD11A2'] ] + [ \
-                go.Scatter(
-                    x=df[i].index,
-                    y=df[i],
-                    name=i,
-                    # line=dict(color=ms_colors[i[0]][i[1]], width=2),
-                    mode='lines'
-                ) 
-                for i in ['ERA-Interim']]
+                ) for i in ['MOD11A2', 'MYD11A2','ACIS',] ],
+
             'layout': {
                 'title': title,
                 'xaxis': dict(title='Year'),
