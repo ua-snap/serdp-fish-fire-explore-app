@@ -132,7 +132,7 @@ map_layout = go.Layout(
     mapbox=dict(
         accesstoken=mapbox_access_token,
         zoom=6.5,
-        center=dict(lat=64.85, lon=-147.5833),
+        center=dict(lat=64.85, lon=-147.15),
         # layers=[
         #     dict(
         #         sourcetype='geojson',
