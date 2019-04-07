@@ -20,21 +20,37 @@ def load_data():
     ''' simple data loader from a remote SNAP resource '''
     base_url = 'https://www.snap.uaf.edu/webshared/Michael/data/serdp_fish_fire'
     
-    # load WRF T2
     wrf_groups = ['ERA-Interim', 'GFDL-CM3', 'NCAR-CCSM4']
-    wrf_t2 = {group:pd.read_csv(io.StringIO(
+    # load WRF T2 Max
+    wrf_t2_max = {group:pd.read_csv(io.StringIO(
         requests.get(
             base_url+\
             '/t2_{}_historical_MOD11A2_max_wrf_acis_chena_river_huc_stations.csv'\
             .format(group)).content.decode('utf-8')),index_col=0, parse_dates=True)\
            for group in wrf_groups }
 
-    # load WRF TSK
-    wrf_groups = ['ERA-Interim', 'GFDL-CM3', 'NCAR-CCSM4']
-    wrf_tsk = {group:pd.read_csv(io.StringIO(
+    # load WRF T2 Min
+    wrf_t2_min = {group:pd.read_csv(io.StringIO(
+        requests.get(
+            base_url+\
+            '/t2_{}_historical_MOD11A2_min_wrf_acis_chena_river_huc_stations.csv'\
+            .format(group)).content.decode('utf-8')),index_col=0, parse_dates=True)\
+           for group in wrf_groups }
+
+
+    # load WRF TSK Max
+    wrf_tsk_max = {group:pd.read_csv(io.StringIO(
         requests.get(
             base_url+\
             '/tsk_{}_historical_MOD11A2_max_wrf_acis_chena_river_huc_stations.csv'\
+            .format(group)).content.decode('utf-8')),index_col=0, parse_dates=True)\
+           for group in wrf_groups }
+
+    # load WRF TSK Min
+    wrf_tsk_min = {group:pd.read_csv(io.StringIO(
+        requests.get(
+            base_url+\
+            '/tsk_{}_historical_MOD11A2_min_wrf_acis_chena_river_huc_stations.csv'\
             .format(group)).content.decode('utf-8')),index_col=0, parse_dates=True)\
            for group in wrf_groups }
 
@@ -57,11 +73,12 @@ def load_data():
     s = requests.get(url).content
     pts = pd.read_csv(io.StringIO(s.decode('utf-8')), index_col=0, parse_dates=True)
 
-    return wrf_t2, wrf_tsk, modis, stations, pts
+    return wrf_t2_max, wrf_t2_min, wrf_tsk_max, wrf_tsk_min, modis, stations, pts
 
 # load data
-wrf_t2, wrf_tsk, modis, stations, pts = load_data()
-wrf = {'t2':wrf_t2,'tsk':wrf_tsk } # stack the variables in a dict for lookup
+wrf_t2_max, wrf_t2_min, wrf_tsk_max, wrf_tsk_min, modis, stations, pts = load_data()
+wrf_max = {'t2':wrf_t2_max,'tsk':wrf_tsk_max } # stack the variables in a dict for lookup
+wrf_min = {'t2':wrf_t2_min,'tsk':wrf_tsk_min } # stack the variables in a dict for lookup
 pts = pts[pts.name2.isin(stations.columns)] # subset the points to fewer 'good' ones
 
 
@@ -115,7 +132,7 @@ map_layout = go.Layout(
     mapbox=dict(
         accesstoken=mapbox_access_token,
         zoom=6.5,
-        center=dict(lat=64.85, lon=-147.5833),
+        center=dict(lat=64.85, lon=-147.15),
         # layers=[
         #     dict(
         #         sourcetype='geojson',
@@ -186,28 +203,46 @@ app.layout = html.Div([
 def update_graph( station_name, wrf_variable, year_range):
     # pull data for the station we want to examine
     begin, end = year_range
-    wrf_groups = wrf[wrf_variable].keys()
-    wrf_df = pd.concat([wrf[wrf_variable][k][station_name] for k in wrf_groups], axis=1)
-    wrf_df.columns = wrf_groups
+    wrf_groups = wrf_max[wrf_variable].keys()
+    # wrf-max
+    wrf_df_max = pd.concat([wrf_max[wrf_variable][k][station_name] for k in wrf_groups], axis=1)
+    wrf_df_max.columns = wrf_groups
+    # wrf-min
+    wrf_df_min = pd.concat([wrf_min[wrf_variable][k][station_name] for k in wrf_groups], axis=1)
+    wrf_df_min.columns = wrf_groups
+    # modis
     modis_df = pd.DataFrame({k:modis[k][station_name] for k in modis})
+    # stations
     station_df = stations[station_name]
     station_df.name = 'ACIS'
     
     # concat
-    df = pd.concat([wrf_df,modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    df = pd.concat([wrf_df_max,modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    # df = pd.concat([modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    wrf_dff_max = wrf_df_max.loc[str(begin):str(end)]
+    wrf_dff_min = wrf_df_min.loc[str(begin):str(end)]
 
     # make a plotly json object directly using cufflinks
     title = 'Compare MODIS LST with WRF {} Max\n {}'.format(wrf_variable.upper(), pts[pts.name2 == station_name].name.values[0])
     # fig_cuff = df.copy(deep=True).iplot(title=title, xTitle='8-day MODIS LST Composite', yTitle='Degrees C', asFigure=True)#, rangeslider=True)
     # return fig_cuff.copy().to_plotly_json()
-    return { 'data': [
+    return { 'data':[ 
+                go.Scatter(
+                    x=wrf_dff_min['ERA-Interim'].index.tolist()+wrf_dff_max['ERA-Interim'].index.tolist()[::-1],
+                    y=wrf_dff_min['ERA-Interim'].tolist()+wrf_dff_max['ERA-Interim'].tolist()[::-1],
+                    name='ERA-Interim',
+                    fill='tozeroy',
+                    # line=dict(color=ms_colors[i[0]][i[1]], width=2),
+                    mode='lines'),
+                ] + [ \
                 go.Scatter(
                     x=df[i].index,
                     y=df[i],
                     name=i,
                     # line=dict(color=ms_colors[i[0]][i[1]], width=2),
                     mode='lines'
-                ) for i in df.columns ],
+                ) for i in ['MOD11A2','MYD11A2','ACIS','GFDL-CM3','NCAR-CCSM4',] ],
+
             'layout': {
                 'title': title,
                 'xaxis': dict(title='Year'),
