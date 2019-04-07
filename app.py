@@ -217,8 +217,8 @@ def update_graph( station_name, wrf_variable, year_range):
     station_df.name = 'ACIS'
     
     # concat
-    # df = pd.concat([wrf_df,modis_df,station_df], axis=1).loc[str(begin):str(end)]
-    df = pd.concat([modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    df = pd.concat([wrf_df_max,modis_df,station_df], axis=1).loc[str(begin):str(end)]
+    # df = pd.concat([modis_df,station_df], axis=1).loc[str(begin):str(end)]
     wrf_dff_max = wrf_df_max.loc[str(begin):str(end)]
     wrf_dff_min = wrf_df_min.loc[str(begin):str(end)]
 
@@ -241,7 +241,7 @@ def update_graph( station_name, wrf_variable, year_range):
                     name=i,
                     # line=dict(color=ms_colors[i[0]][i[1]], width=2),
                     mode='lines'
-                ) for i in ['MOD11A2', 'MYD11A2','ACIS',] ],
+                ) for i in ['MOD11A2','MYD11A2','ACIS','GFDL-CM3','NCAR-CCSM4',] ],
 
             'layout': {
                 'title': title,
