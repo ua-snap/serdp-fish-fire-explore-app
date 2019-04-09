@@ -5,9 +5,7 @@ import dash_html_components as html
 import plotly.graph_objs as go
 import cufflinks
 import pandas as pd
-import geopandas as gpd
 import numpy as np
-import base64
 from collections import defaultdict
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
