@@ -12,7 +12,7 @@ from collections import defaultdict
 # #  SERDP-FISH-FIRE Data Explorer Tool                                 # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-mapbox_access_token = os.environ['mapbox_access_token']
+mapbox_access_token = os.environ['MAPBOX_ACCESS_TOKEN']
 
 def load_data():
     ''' simple data loader from a remote SNAP resource '''
