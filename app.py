@@ -12,7 +12,7 @@ from collections import defaultdict
 # #  SERDP-FISH-FIRE Data Explorer Tool                                 # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-mapbox_access_token = 'pk.eyJ1IjoiZWFydGhzY2llbnRpc3QiLCJhIjoiY2o4b3J5eXdwMDZ5eDM4cXU4dzJsMGIyZiJ9.a5IlzVUBGzJbQ0ayHC6t1w'
+mapbox_access_token = os.environ(mapbox_access_token)
 
 def load_data():
     ''' simple data loader from a remote SNAP resource '''
@@ -100,11 +100,10 @@ These data constitute:
 
 app = dash.Dash(__name__)
 server = app.server
-server.secret_key = 'SERVER_SECRET_KEY' # testing hack
+server.secret_key = os.environ(secret_key) # testing hack
 app.config.supress_callback_exceptions = True
 app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 app.title = 'SERDP-Fish-Fire'
-
 
 map_traces = [
     go.Scattermapbox(
