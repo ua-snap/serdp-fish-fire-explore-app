@@ -13,8 +13,6 @@ from collections import defaultdict
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 mapbox_access_token = str(os.environ['MAPBOX_ACCESS_TOKEN'])
-# mapbox_access_token = 'pk.eyJ1IjoiZWFydGhzY2llbnRpc3QiLCJhIjoiY2o4b3J5eXdwMDZ5eDM4cXU4dzJsMGIyZiJ9.a5IlzVUBGzJbQ0ayHC6t1w'
-print(mapbox_access_token)
 
 def load_data():
     ''' simple data loader from a remote SNAP resource '''
