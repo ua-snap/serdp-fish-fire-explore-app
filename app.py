@@ -14,6 +14,8 @@ from collections import defaultdict
 
 mapbox_access_token = os.environ['MAPBOX_ACCESS_TOKEN']
 
+print(mapbox_access_token)
+
 def load_data():
     ''' simple data loader from a remote SNAP resource '''
     base_url = 'https://www.snap.uaf.edu/webshared/Michael/data/serdp_fish_fire'
